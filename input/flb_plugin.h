@@ -20,6 +20,16 @@
 #ifndef FLBGO_PLUGIN_H
 #define FLBGO_PLUGIN_H
 
+#include <stdlib.h>
+
+/* This structure is used for doubly linked list node.
+ * It matches the one in mk_core/mk_list.h in monkey source code.
+ */
+struct mk_list
+{
+    struct mk_list *prev, *next;
+};
+
 /* Return values */
 #define FLB_ERROR   0
 #define FLB_OK      1
@@ -29,8 +39,41 @@
 #define FLB_PROXY_INPUT_PLUGIN    1
 #define FLB_PROXY_GOLANG          11
 
+/* This structure is used to represents a plugin configuration property's value.
+ * It matches the one in include/fluent-bit/flb_config_map.h in fluent-bit source code.
+ */
+struct flb_config_map_val {
+    union {
+        int i_num;
+        int boolean;
+        double d_num;
+        size_t s_num;
+        char* str;
+        struct mk_list *list;
+        struct cfl_variant *variant;
+    } val;
+    char* raw;
+    struct mk_list *mult;
+    struct mk_list _head;
+};
+
+/* This structure is used to defines a plugin configuration property.
+ * It matches the one in include/fluent-bit/flb_config_map.h in fluent-bit source code.
+ */
+struct flb_config_map {
+    int type;
+    char *name;
+    char *def_value;
+    int flags;
+    int set_property;
+    unsigned long offset;
+    char * desc;
+    struct flb_config_map_val value;
+    struct mk_list _head;
+};
+
 /* This structure is used for registration.
- * It matches the one in flb_plugin_proxy.h in fluent-bit source code.
+ * It matches the one in include/fluent-bit/flb_plugin_proxy.h in fluent-bit source code.
  */
 struct flb_plugin_proxy_def {
     int type;
@@ -39,6 +82,7 @@ struct flb_plugin_proxy_def {
     char *name;
     char *description;
     int event_type;
+    struct flb_config_map *config_map;
 };
 
 #endif
