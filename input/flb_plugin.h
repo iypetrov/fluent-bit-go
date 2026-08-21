@@ -39,6 +39,34 @@ struct mk_list
 #define FLB_PROXY_INPUT_PLUGIN    1
 #define FLB_PROXY_GOLANG          11
 
+/* Configuration map property types */
+#define FLB_CONFIG_MAP_STR         0
+#define FLB_CONFIG_MAP_STR_PREFIX  1
+#define FLB_CONFIG_MAP_INT         2
+#define FLB_CONFIG_MAP_BOOL        3
+#define FLB_CONFIG_MAP_DOUBLE      4
+#define FLB_CONFIG_MAP_SIZE        5
+#define FLB_CONFIG_MAP_TIME        6
+#define FLB_CONFIG_MAP_DEPRECATED  7
+
+#define FLB_CONFIG_MAP_CLIST      30
+#define FLB_CONFIG_MAP_CLIST_1    31
+#define FLB_CONFIG_MAP_CLIST_2    32
+#define FLB_CONFIG_MAP_CLIST_3    33
+#define FLB_CONFIG_MAP_CLIST_4    34
+
+#define FLB_CONFIG_MAP_SLIST      40
+#define FLB_CONFIG_MAP_SLIST_1    41
+#define FLB_CONFIG_MAP_SLIST_2    42
+#define FLB_CONFIG_MAP_SLIST_3    43
+#define FLB_CONFIG_MAP_SLIST_4    44
+
+#define FLB_CONFIG_MAP_VARIANT    50
+
+/* Configuration map property flags */
+#define FLB_CONFIG_MAP_MULT        1
+#define FLB_CONFIG_MAP_DYNAMIC_ENV 2
+
 /* This structure is used to represents a plugin configuration property's value.
  * It matches the one in include/fluent-bit/flb_config_map.h in fluent-bit source code.
  */
