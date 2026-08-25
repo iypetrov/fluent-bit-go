@@ -14,7 +14,7 @@ import (
 
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return input.FLBPluginRegister(def, "gdummy", "dummy GO!")
+	return input.FLBPluginRegister(def, input.WithName("gdummy"), input.WithDescription("dummy GO!"))
 }
 
 //export FLBPluginInit
