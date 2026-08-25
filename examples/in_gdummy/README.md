@@ -24,7 +24,7 @@ description:
 ```go
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return input.FLBPluginRegister(def, "gdummy", "dummy Go!")
+	return input.FLBPluginRegister(def, input.WithName("gdummy"), input.WithDescription("dummy Go!"))
 }
 ```
 
