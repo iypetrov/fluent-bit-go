@@ -13,7 +13,7 @@ import (
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
 	log.Printf("[multiinstance] Register called")
-	return output.FLBPluginRegister(def, "multiinstance", "Testing multiple instances.")
+	return output.FLBPluginRegister(def, output.WithName("multiinstance"), output.WithDescription("Testing multiple instances."))
 }
 
 //export FLBPluginInit
