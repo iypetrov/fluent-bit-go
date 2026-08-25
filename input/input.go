@@ -85,7 +85,18 @@ type ConfigMap struct {
 // is passed and the next step is to invoke this FLBPluginRegister() function
 // to fill the required information: type, proxy type, flags name and
 // description.
-func FLBPluginRegister(def unsafe.Pointer, name, desc string, cmap []ConfigMap) int {
+func FLBPluginRegister(def unsafe.Pointer, name, desc string) int {
+	p := (*FLBPluginProxyDef)(def)
+	p._type = FLB_PROXY_INPUT_PLUGIN
+	p.proxy = FLB_PROXY_GOLANG
+	p.flags = 0
+	p.name = C.CString(name)
+	p.description = C.CString(desc)
+	p.event_type = 0
+	return 0
+}
+
+func FLBPluginRegisterWithConfigMap(def unsafe.Pointer, name, desc string, cmap []ConfigMap) int {
 	p := (*FLBPluginProxyDef)(def)
 	p._type = FLB_PROXY_INPUT_PLUGIN
 	p.proxy = FLB_PROXY_GOLANG
