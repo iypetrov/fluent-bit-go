@@ -32,6 +32,41 @@ When creating a Fluent Bit Input plugin, the _input_ package can be used as foll
 import "github.com/fluent/fluent-bit-go/input"
 ```
 
+### Typed configuration
+
+Both the _output_ and _input_ packages allow a plugin to declare a typed
+configuration schema at registration time by passing a `[]ConfigMap` to
+`FLBPluginRegisterWithConfigMap` (or `FLBPluginRegisterWithEventTypeAndConfigMap`
+when an event type is also needed). This mirrors the `flb_config_map config_map[]` that native C plugins
+expose: Fluent Bit uses it to apply default values and to validate the
+properties supplied in the configuration file (including rejecting unknown
+keys).
+
+> **Requires Fluent Bit v5.1.1 or higher** (see [fluent/fluent-bit#12058][config-map-pr]).
+> On earlier versions the schema is ignored — the plugin still loads, but the
+> properties are not validated. Use plain `FLBPluginRegister` if you do not want
+> to declare a schema.
+
+Here is an example how to register a plugin with typed configuration:
+```go
+func FLBPluginRegister(def unsafe.Pointer) int {
+    return output.FLBPluginRegisterWithConfigMap(def, "my_output_plugin", "My output plugin", []output.ConfigMap{
+        {
+            Type:     output.FLB_CONFIG_MAP_STR,
+            Name:     "endpoint",
+            DefValue: "http://localhost:8080",
+            Desc:     "Destination endpoint URL.",
+        },
+        {
+            Type:     output.FLB_CONFIG_MAP_INT,
+            Name:     "retries",
+            DefValue: "3",
+            Desc:     "Number of retries on failure.",
+        },
+    })
+}
+```
+
 #### Config key constraint
 
 Some config keys are used/overwritten by Fluent Bit and can't be used by a custom plugin, they are:
@@ -98,6 +133,7 @@ other [contributors][contributors].
 [fluent-bit]: http://fluentbit.io/
 [fluent-bit-1-4]: https://github.com/fluent/fluent-bit/tree/v1.4.0
 [fluent-bit-1-9]: https://github.com/fluent/fluent-bit/tree/1.9
+[config-map-pr]: https://github.com/fluent/fluent-bit/pull/12058
 [multiinstance]: https://github.com/fluent/fluent-bit-go/tree/fc386d263885e50387dd0081a77adf4072e8e4b6/examples/out_multiinstance
 [fluent-bit-go]: http://github.com/fluent/fluent-bit-go
 [treasure-data]: http://treasuredata.com
