@@ -11,7 +11,7 @@ import (
 
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return output.FLBPluginRegister(def, "gstdout", "Stdout GO!")
+	return output.FLBPluginRegister(def, output.WithName("gstdout"), output.WithDescription("Stdout GO!"))
 }
 
 //export FLBPluginInit
