@@ -85,65 +85,76 @@ type ConfigMap struct {
 	Desc string
 }
 
+// options holds the settings applied during plugin registration.
+type options struct {
+	name      string
+	desc      string
+	eventType int
+	cmap      []ConfigMap
+}
+
+type Option func(*options) error
+
+// WithName sets the plugin's short name.
+func WithName(name string) Option {
+	return func(o *options) error {
+		o.name = name
+		return nil
+	}
+}
+
+// WithDescription sets the plugin's description.
+func WithDescription(desc string) Option {
+	return func(o *options) error {
+		o.desc = desc
+		return nil
+	}
+}
+
+// WithEventType sets the plugin's event type (one of FLB_OUTPUT_LOGS,
+// FLB_OUTPUT_METRICS, FLB_OUTPUT_TRACES).
+func WithEventType(eventType int) Option {
+	return func(o *options) error {
+		o.eventType = eventType
+		return nil
+	}
+}
+
+// WithConfigMap declares a typed configuration schema for the plugin.
+func WithConfigMap(cmap []ConfigMap) Option {
+	return func(o *options) error {
+		o.cmap = cmap
+		return nil
+	}
+}
+
 // When the FLBPluginInit is triggered by Fluent Bit, a plugin context
 // is passed and the next step is to invoke this FLBPluginRegister() function
 // to fill the required information: type, proxy type, flags name and
 // description.
-func FLBPluginRegister(def unsafe.Pointer, name, desc string) int {
-	p := (*FLBPluginProxyDef)(def)
-	p._type = FLB_PROXY_OUTPUT_PLUGIN
-	p.proxy = FLB_PROXY_GOLANG
-	p.flags = 0
-	p.name = C.CString(name)
-	p.description = C.CString(desc)
-	p.event_type = 0
-	return 0
-}
-
-func FLBPluginRegisterWithEventType(def unsafe.Pointer, eventType int, name, desc string) int {
-	p := (*FLBPluginProxyDef)(def)
-	p._type = FLB_PROXY_OUTPUT_PLUGIN
-	p.proxy = FLB_PROXY_GOLANG
-	p.flags = 0
-	p.name = C.CString(name)
-	p.description = C.CString(desc)
-	p.event_type = C.int(eventType)
-	return 0
-}
-
-func FLBPluginRegisterWithConfigMap(def unsafe.Pointer, name, desc string, cmap []ConfigMap) int {
-	p := (*FLBPluginProxyDef)(def)
-	p._type = FLB_PROXY_OUTPUT_PLUGIN
-	p.proxy = FLB_PROXY_GOLANG
-	p.flags = 0
-	p.name = C.CString(name)
-	p.description = C.CString(desc)
-	p.event_type = 0
-	setConfigMap(p, cmap)
-	return 0
-}
-
-func FLBPluginRegisterWithEventTypeAndConfigMap(def unsafe.Pointer, eventType int, name, desc string, cmap []ConfigMap) int {
-	p := (*FLBPluginProxyDef)(def)
-	p._type = FLB_PROXY_OUTPUT_PLUGIN
-	p.proxy = FLB_PROXY_GOLANG
-	p.flags = 0
-	p.name = C.CString(name)
-	p.description = C.CString(desc)
-	p.event_type = C.int(eventType)
-	setConfigMap(p, cmap)
-	return 0
-}
-
-// setConfigMap attaches a typed configuration schema to the plugin definition.
-func setConfigMap(p *FLBPluginProxyDef, cmap []ConfigMap) {
-	if len(cmap) == 0 {
-		return
+func FLBPluginRegister(def unsafe.Pointer, opts ...Option) int {
+	o := &options{}
+	for _, opt := range opts {
+		if err := opt(o); err != nil {
+			return -1
+		}
 	}
 
-	cfg := (*C.struct_flb_config_map)(C.calloc(C.size_t(len(cmap)+1), C.sizeof_struct_flb_config_map))
-	entries := (*[1 << 28]C.struct_flb_config_map)(unsafe.Pointer(cfg))[:len(cmap):len(cmap)]
-	for i, m := range cmap {
+	p := (*FLBPluginProxyDef)(def)
+	p._type = FLB_PROXY_OUTPUT_PLUGIN
+	p.proxy = FLB_PROXY_GOLANG
+	p.flags = 0
+	p.name = C.CString(o.name)
+	p.description = C.CString(o.desc)
+	p.event_type = C.int(o.eventType)
+
+	if len(o.cmap) == 0 {
+		return -1
+	}
+
+	cfg := (*C.struct_flb_config_map)(C.calloc(C.size_t(len(o.cmap)+1), C.sizeof_struct_flb_config_map))
+	entries := (*[1 << 28]C.struct_flb_config_map)(unsafe.Pointer(cfg))[:len(o.cmap):len(o.cmap)]
+	for i, m := range o.cmap {
 		entries[i]._type = C.int(m.Type)
 		entries[i].name = C.CString(m.Name)
 		entries[i].flags = C.int(m.Flags)
@@ -152,6 +163,7 @@ func setConfigMap(p *FLBPluginProxyDef, cmap []ConfigMap) {
 	}
 
 	p.config_map = cfg
+	return 0
 }
 
 // Release resources allocated by the plugin initialization
