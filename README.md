@@ -36,22 +36,21 @@ import "github.com/fluent/fluent-bit-go/input"
 
 Both the _output_ and _input_ packages allow a plugin to declare a typed
 configuration schema at registration time by passing a `[]ConfigMap` to
-`FLBPluginRegister`. This mirrors the `flb_config_map config_map[]` that native C plugins
+`FLBPluginRegisterWithConfigMap` (or `FLBPluginRegisterWithEventTypeAndConfigMap`
+when an event type is also needed). This mirrors the `flb_config_map config_map[]` that native C plugins
 expose: Fluent Bit uses it to apply default values and to validate the
 properties supplied in the configuration file (including rejecting unknown
 keys).
 
 > **Requires Fluent Bit v5.1.1 or higher** (see [fluent/fluent-bit#12058][config-map-pr]).
 > On earlier versions the schema is ignored — the plugin still loads, but the
-> properties are not validated. Pass `nil` if you do not want to declare a
-> schema.
+> properties are not validated. Use plain `FLBPluginRegister` if you do not want
+> to declare a schema.
 
-Property values are read at runtime with `FLBPluginConfigKey`, the same as
-before; the schema only adds defaults and validation.
-
+Here is an example how to register a plugin with typed configuration:
 ```go
 func FLBPluginRegister(def unsafe.Pointer) int {
-    return output.FLBPluginRegister(def, "my_output_plugin", "My output plugin", []output.ConfigMap{
+    return output.FLBPluginRegisterWithConfigMap(def, "my_output_plugin", "My output plugin", []output.ConfigMap{
         {
             Type:     output.FLB_CONFIG_MAP_STR,
             Name:     "endpoint",
@@ -67,9 +66,6 @@ func FLBPluginRegister(def unsafe.Pointer) int {
     })
 }
 ```
-
-The available `FLB_CONFIG_MAP_*` type and flag constants are exported by both
-packages.
 
 #### Config key constraint
 
