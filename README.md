@@ -36,7 +36,7 @@ import "github.com/fluent/fluent-bit-go/input"
 
 Both the _output_ and _input_ packages allow a plugin to declare a typed
 configuration schema at registration time by passing a `[]ConfigMap` to
-`FLBPluginRegister` via the `WithConfigMap` option (combine it with
+`FLBPluginRegisterWithOptions` via the `WithConfigMap` option (combine it with
 `WithEventType` when an event type is also needed). This mirrors the
 `flb_config_map config_map[]` that native C plugins
 expose: Fluent Bit uses it to apply default values and to validate the
@@ -51,7 +51,7 @@ keys).
 Here is an example how to register a plugin with typed configuration:
 ```go
 func FLBPluginRegister(def unsafe.Pointer) int {
-    return output.FLBPluginRegister(def,
+    return output.FLBPluginRegisterWithOptions(def,
         output.WithName("my_output_plugin"),
         output.WithDescription("My output plugin"),
         output.WithConfigMap([]output.ConfigMap{
