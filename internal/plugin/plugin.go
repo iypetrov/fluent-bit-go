@@ -18,12 +18,19 @@
 // Package plugin holds the shared registration types used by the input and output packages.
 package plugin
 
+// ConfigMap describes a single typed configuration property that a plugin
+// exposes. It mirrors the public registration fields of the C struct flb_config_map.
 type ConfigMap struct {
-	Type     int
-	Name     string
+	// Type is one of the FLB_CONFIG_MAP_* property types.
+	Type int
+	// Name is the property identifier as written in the configuration.
+	Name string
+	// DefValue is the default value applied when the property is not set.
 	DefValue string
-	Flags    int
-	Desc     string
+	// Flags is a bitmask of FLB_CONFIG_MAP_* flags.
+	Flags int
+	// Desc is a human readable description of the property.
+	Desc string
 }
 
 type Options struct {
