@@ -80,6 +80,7 @@ var WithDescription = plugin.WithDescription
 var WithEventType = plugin.WithEventType
 var WithConfigMap = plugin.WithConfigMap
 
+// Deprecated: Use FLBPluginRegisterWithOptions instead.
 func FLBPluginRegister(def unsafe.Pointer, name, desc string) int {
 	p := (*FLBPluginProxyDef)(def)
 	p._type = FLB_PROXY_OUTPUT_PLUGIN
@@ -91,6 +92,7 @@ func FLBPluginRegister(def unsafe.Pointer, name, desc string) int {
 	return 0
 }
 
+// Deprecated: Use FLBPluginRegisterWithOptions instead.
 func FLBPluginRegisterWithEventType(def unsafe.Pointer, eventType int, name, desc string) int {
 	p := (*FLBPluginProxyDef)(def)
 	p._type = FLB_PROXY_OUTPUT_PLUGIN
@@ -102,6 +104,7 @@ func FLBPluginRegisterWithEventType(def unsafe.Pointer, eventType int, name, des
 	return 0
 }
 
+// Deprecated: Use FLBPluginRegisterWithOptions instead.
 func FLBPluginRegisterWithConfigMap(def unsafe.Pointer, name, desc string, cmap []ConfigMap) int {
 	p := (*FLBPluginProxyDef)(def)
 	p._type = FLB_PROXY_OUTPUT_PLUGIN
@@ -114,6 +117,7 @@ func FLBPluginRegisterWithConfigMap(def unsafe.Pointer, name, desc string, cmap 
 	return 0
 }
 
+// Deprecated: Use FLBPluginRegisterWithOptions instead.
 func FLBPluginRegisterWithEventTypeAndConfigMap(def unsafe.Pointer, eventType int, name, desc string, cmap []ConfigMap) int {
 	p := (*FLBPluginProxyDef)(def)
 	p._type = FLB_PROXY_OUTPUT_PLUGIN
@@ -126,6 +130,9 @@ func FLBPluginRegisterWithEventTypeAndConfigMap(def unsafe.Pointer, eventType in
 	return 0
 }
 
+// When the FLBPluginInit is triggered by Fluent Bit, a plugin context is passed
+// and the next step is to invoke this FLBPluginRegisterWithOptions() function
+// to fill the required information: type, proxy type, flags name and description.
 func FLBPluginRegisterWithOptions(def unsafe.Pointer, opts ...Option) int {
 	o := plugin.Options{}
 	for _, opt := range opts {
@@ -144,10 +151,12 @@ func FLBPluginRegisterWithOptions(def unsafe.Pointer, opts ...Option) int {
 	return 0
 }
 
+// setConfigMap attaches a typed configuration schema to the plugin definition.
 func setConfigMap(p *FLBPluginProxyDef, cmap []ConfigMap) {
 	if len(cmap) == 0 {
 		return
 	}
+
 	cfg := (*C.struct_flb_config_map)(C.calloc(C.size_t(len(cmap)+1), C.sizeof_struct_flb_config_map))
 	entries := (*[1 << 28]C.struct_flb_config_map)(unsafe.Pointer(cfg))[:len(cmap):len(cmap)]
 	for i, m := range cmap {
@@ -157,6 +166,7 @@ func setConfigMap(p *FLBPluginProxyDef, cmap []ConfigMap) {
 		entries[i].def_value = C.CString(m.DefValue)
 		entries[i].desc = C.CString(m.Desc)
 	}
+
 	p.config_map = cfg
 }
 
