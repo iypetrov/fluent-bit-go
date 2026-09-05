@@ -22,7 +22,7 @@ description:
 ```go
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return output.FLBPluginRegister(ctx, output.WithName("multiinstance"), output.WithDescription("Testing multiple instances"))
+	return output.FLBPluginRegisterWithOptions(ctx, output.WithName("multiinstance"), output.WithDescription("Testing multiple instances"))
 }
 ```
 
@@ -37,7 +37,7 @@ can be set to allow for metrics by using the `output.WithEventType` option.
 ```go
 //export FLBPluginRegister 
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return output.FLBPluginRegister(ctx, output.WithEventType(output.FLB_OUTPUT_METRICS), output.WithName("multiinstance"), output.WithDescription("Testing multiple instances"))
+	return output.FLBPluginRegisterWithOptions(ctx, output.WithEventType(output.FLB_OUTPUT_METRICS), output.WithName("multiinstance"), output.WithDescription("Testing multiple instances"))
 }
 ```
 

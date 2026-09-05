@@ -18,7 +18,7 @@ When Fluent Bit loads a Golang plugin, it lookup and load the registration callb
 ```go
 //export FLBPluginRegister
 func FLBPluginRegister(ctx unsafe.Pointer) int {
-	return output.FLBPluginRegister(ctx, output.WithName("gstdout"), output.WithDescription("Stdout GO!"))
+	return output.FLBPluginRegisterWithOptions(ctx, output.WithName("gstdout"), output.WithDescription("Stdout GO!"))
 }
 ```
 
@@ -32,7 +32,7 @@ can be set to allow for metrics by using the `output.WithEventType` option.
 ```go
 //export FLBPluginRegister 
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return output.FLBPluginRegister(ctx, output.WithEventType(output.FLB_OUTPUT_METRICS), output.WithName("gstdout"), output.WithDescription("Stdout GO!"))
+	return output.FLBPluginRegisterWithOptions(ctx, output.WithEventType(output.FLB_OUTPUT_METRICS), output.WithName("gstdout"), output.WithDescription("Stdout GO!"))
 }
 ```
 
