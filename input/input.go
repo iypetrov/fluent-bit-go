@@ -25,6 +25,8 @@ package input
 import "C"
 import (
 	"unsafe"
+
+	"github.com/fluent/fluent-bit-go/internal/plugin"
 )
 
 // Define constants matching Fluent Bit core
@@ -66,99 +68,69 @@ const (
 type FLBPluginProxyDef C.struct_flb_plugin_proxy_def
 type FLBInPlugin C.struct_flbgo_input_plugin
 
-// ConfigMap describes a single typed configuration property that a plugin
-// exposes. It mirrors the public registration fields of the C struct flb_config_map.
-type ConfigMap struct {
-	// Type is one of the FLB_CONFIG_MAP_* property types.
-	Type int
-	// Name is the property identifier as written in the configuration.
-	Name string
-	// DefValue is the default value applied when the property is not set.
-	DefValue string
-	// Flags is a bitmask of FLB_CONFIG_MAP_* flags.
-	Flags int
-	// Desc is a human readable description of the property.
-	Desc string
-}
+type ConfigMap = plugin.ConfigMap
+type Option = plugin.Option
 
-// options holds the settings applied during plugin registration.
-type options struct {
-	name      string
-	desc      string
-	eventType int
-	cmap      []ConfigMap
-}
+var WithName = plugin.WithName
+var WithDescription = plugin.WithDescription
+var WithEventType = plugin.WithEventType
+var WithConfigMap = plugin.WithConfigMap
 
-type Option func(*options) error
-
-// WithName sets the plugin's short name.
-func WithName(name string) Option {
-	return func(o *options) error {
-		o.name = name
-		return nil
-	}
-}
-
-// WithDescription sets the plugin's description.
-func WithDescription(desc string) Option {
-	return func(o *options) error {
-		o.desc = desc
-		return nil
-	}
-}
-
-// WithEventType sets the plugin's event type.
-func WithEventType(eventType int) Option {
-	return func(o *options) error {
-		o.eventType = eventType
-		return nil
-	}
-}
-
-// WithConfigMap declares a typed configuration schema for the plugin.
-func WithConfigMap(cmap []ConfigMap) Option {
-	return func(o *options) error {
-		o.cmap = cmap
-		return nil
-	}
-}
-
-// When the FLBPluginInit is triggered by Fluent Bit, a plugin context
-// is passed and the next step is to invoke this FLBPluginRegister() function
-// to fill the required information: type, proxy type, flags name and
-// description.
-func FLBPluginRegister(def unsafe.Pointer, opts ...Option) int {
-	o := &options{}
-	for _, opt := range opts {
-		if err := opt(o); err != nil {
-			return -1
-		}
-	}
-
+func FLBPluginRegister(def unsafe.Pointer, name, desc string) int {
 	p := (*FLBPluginProxyDef)(def)
 	p._type = FLB_PROXY_INPUT_PLUGIN
 	p.proxy = FLB_PROXY_GOLANG
 	p.flags = 0
-	p.name = C.CString(o.name)
-	p.description = C.CString(o.desc)
-	p.event_type = C.int(o.eventType)
+	p.name = C.CString(name)
+	p.description = C.CString(desc)
+	p.event_type = 0
+	return 0
+}
 
-	if len(o.cmap) == 0 {
-		return -1
+func FLBPluginRegisterWithConfigMap(def unsafe.Pointer, name, desc string, cmap []ConfigMap) int {
+	p := (*FLBPluginProxyDef)(def)
+	p._type = FLB_PROXY_INPUT_PLUGIN
+	p.proxy = FLB_PROXY_GOLANG
+	p.flags = 0
+	p.name = C.CString(name)
+	p.description = C.CString(desc)
+	p.event_type = 0
+	setConfigMap(p, cmap)
+	return 0
+}
+
+func FLBPluginRegisterWithOptions(def unsafe.Pointer, opts ...Option) int {
+	o := plugin.Options{}
+	for _, opt := range opts {
+		opt(&o)
 	}
+	p := (*FLBPluginProxyDef)(def)
+	p._type = FLB_PROXY_INPUT_PLUGIN
+	p.proxy = FLB_PROXY_GOLANG
+	p.flags = 0
+	p.name = C.CString(o.Name)
+	p.description = C.CString(o.Desc)
+	p.event_type = C.int(o.EventType)
+	if len(o.CMap) > 0 {
+		setConfigMap(p, o.CMap)
+	}
+	return 0
+}
 
-	cfg := (*C.struct_flb_config_map)(C.calloc(C.size_t(len(o.cmap)+1), C.sizeof_struct_flb_config_map))
-	entries := (*[1 << 28]C.struct_flb_config_map)(unsafe.Pointer(cfg))[:len(o.cmap):len(o.cmap)]
-	for i, m := range o.cmap {
+func setConfigMap(p *FLBPluginProxyDef, cmap []ConfigMap) {
+	if len(cmap) == 0 {
+		return
+	}
+	cfg := (*C.struct_flb_config_map)(C.calloc(C.size_t(len(cmap)+1), C.sizeof_struct_flb_config_map))
+	entries := (*[1 << 28]C.struct_flb_config_map)(unsafe.Pointer(cfg))[:len(cmap):len(cmap)]
+	for i, m := range cmap {
 		entries[i]._type = C.int(m.Type)
 		entries[i].name = C.CString(m.Name)
 		entries[i].flags = C.int(m.Flags)
 		entries[i].def_value = C.CString(m.DefValue)
 		entries[i].desc = C.CString(m.Desc)
 	}
-
 	p.config_map = cfg
-	return 0
 }
 
 // Release resources allocated by the plugin initialization
