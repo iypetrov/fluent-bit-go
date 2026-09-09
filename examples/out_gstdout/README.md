@@ -18,7 +18,7 @@ When Fluent Bit loads a Golang plugin, it lookup and load the registration callb
 ```go
 //export FLBPluginRegister
 func FLBPluginRegister(ctx unsafe.Pointer) int {
-	return output.FLBPluginRegister(ctx, "gstdout", "Stdout GO!")
+	return output.FLBPluginRegisterWithOptions(ctx, output.WithName("gstdout"), output.WithDescription("Stdout GO!"))
 }
 ```
 
@@ -27,12 +27,12 @@ This function is invoked at start time _before_ any configuration is done inside
 ### Setting event type 
 
 By default, Fluent Bit Golang plugins process logs. Optionally, the event_type 
-can be set to allow for metrics by using `output.FLBPluginRegisterWithEventType`. 
+can be set to allow for metrics by using the `output.WithEventType` option. 
 
 ```go
 //export FLBPluginRegister 
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return output.FLBPluginRegisterWithEventType(ctx, output.FLB_OUTPUT_METRICS, "gstdout", "Stdout GO!")
+	return output.FLBPluginRegisterWithOptions(ctx, output.WithEventType(output.FLB_OUTPUT_METRICS), output.WithName("gstdout"), output.WithDescription("Stdout GO!"))
 }
 ```
 

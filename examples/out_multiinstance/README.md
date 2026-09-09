@@ -22,7 +22,7 @@ description:
 ```go
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return output.FLBPluginRegister(ctx, "multiinstance", "Testing multiple instances")
+	return output.FLBPluginRegisterWithOptions(ctx, output.WithName("multiinstance"), output.WithDescription("Testing multiple instances"))
 }
 ```
 
@@ -32,12 +32,12 @@ inside the engine.
 ### Setting event type 
 
 By default, Fluent Bit Golang plugins process logs. Optionally, the event_type 
-can be set to allow for metrics by using `output.FLBPluginRegisterWithEventType`. 
+can be set to allow for metrics by using the `output.WithEventType` option. 
 
 ```go
 //export FLBPluginRegister 
 func FLBPluginRegister(def unsafe.Pointer) int {
-	return output.FLBPluginRegisterWithEventType(ctx, output.FLB_OUTPUT_METRICS, "multiinstance", "Testing multiple instances")
+	return output.FLBPluginRegisterWithOptions(ctx, output.WithEventType(output.FLB_OUTPUT_METRICS), output.WithName("multiinstance"), output.WithDescription("Testing multiple instances"))
 }
 ```
 
